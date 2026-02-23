@@ -1,5 +1,6 @@
 import os
 import traceback
+from myapp.utils import init_db
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
