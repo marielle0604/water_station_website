@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+        <div class="flex justify-center items-center mb-4">
+            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <i class="fas fa-water text-white text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-blue-800 ml-3">AquaVoice</h1>
+        </div>
+        <p class="text-gray-600 text-lg">Login to your account</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div data-flash class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-400{% elif category == 'danger' %}bg-red-100 text-red-700 border border-red-400{% else %}bg-blue-100 text-blue-700 border border-blue-400{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Login Form -->
+    <div class="bg-white rounded-2xl shadow-2xl p-8">
+        <form method="POST" action="{{ url_for('login') }}" class="space-y-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-user text-blue-500 mr-2"></i>Username
+                </label>
+                <input type="text" name="username" required
+                       placeholder="Enter your username"
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-lock text-blue-500 mr-2"></i>Password
+                </label>
+                <input type="password" name="password" required
+                       placeholder="Enter your password"
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input type="checkbox" name="remember" id="remember" 
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="remember" class="ml-2 text-sm text-gray-600">Remember me</label>
+                </div>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition">Forgot password?</a>
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-cyan-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg">
+                <i class="fas fa-sign-in-alt mr-2"></i>LOGIN
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <p class="text-gray-600">Don't have an account? 
+                <a href="{{ url_for('register') }}" class="text-blue-600 hover:text-blue-800 font-semibold transition">
+                    Register here
+                </a>
+            </p>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="text-sm text-gray-500 hover:text-blue-600 transition">
+                <i class="fas fa-arrow-left mr-1"></i>Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Demo Credentials -->
+    <div class="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+        <p class="text-sm text-yellow-700 font-semibold mb-2">
+            <i class="fas fa-info-circle mr-1"></i>Demo Credentials:
+        </p>
+        <p class="text-xs text-yellow-600">Admin: username: admin / password: admin123</p>
+        <p class="text-xs text-yellow-600 mt-1">(Change these in production!)</p>
+    </div>
+</div>
+{% endblock %}

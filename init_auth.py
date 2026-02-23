@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 from app import app, db
 from app import User, WaterStation
+from flask_bcrypt import Bcrypt
 
-def init_database():
+bcrypt = Bcrypt(app)
+
+def init_auth():
     with app.app_context():
-        # Create all tables
+        # Create tables
         db.create_all()
         print("✅ Tables created successfully!")
         
@@ -24,20 +27,18 @@ def init_database():
         
         # Create default admin user
         if not User.query.filter_by(username='admin').first():
-            # Password: admin123 (will be hashed by the app)
             admin = User(
                 username='admin',
                 email='admin@aquavoice.com',
                 is_admin=True
             )
-            # The password will be hashed when you first run the app
-            admin.set_password('admin123')
+            admin.set_password('admin123')  # Change this!
             db.session.add(admin)
             print("✅ Default admin created - username: admin, password: admin123")
             print("⚠️  IMPORTANT: Change this password after first login!")
         
         db.session.commit()
-        print("🎉 Database initialization complete!")
+        print("🎉 Authentication system initialized successfully!")
 
 if __name__ == "__main__":
-    init_database()
+    init_auth()

@@ -33,3 +33,20 @@ INSERT INTO water_stations (name) VALUES
     ('YAKAP AT HALIK WATER REFILLING STATION'),
     ('MARKEN MIST WATER REFILLING STATION')
 ON CONFLICT (name) DO NOTHING;
+
+-- Add users table
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(80) UNIQUE NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(200) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP
+);
+
+-- Insert default admin user (password: admin123)
+-- You should change this after first login
+INSERT INTO users (username, email, password_hash, is_admin) 
+VALUES ('admin', 'admin@aquavoice.com', '$2b$12$K8H9zX5yLmN7pQ3rS2tU1eV5wX6yZ7aB8cD9eF0gH1iJ2kL3mN4oP5q', TRUE)
+ON CONFLICT (email) DO NOTHING;

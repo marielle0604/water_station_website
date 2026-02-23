@@ -7,8 +7,10 @@
     <!-- Header with Logo -->
     <div class="text-center mb-8">
         <div class="flex justify-center items-center mb-4">
-            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                <img src="../static/images/34bd8a72-66aa-4cc7-a5ae-02d38163dd42.jpeg" alt="AquaVoice Logo"  class="w-16 h-16 rounded-full object-cover">
+            <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                <img src="../static/images/34bd8a72-66aa-4cc7-a5ae-02d38163dd42.jpeg" 
+                     alt="AquaVoice Logo"  
+                     class="w-20 h-20 rounded-full object-cover">
             </div>
             <h1 class="text-4xl font-bold text-blue-800 ml-3">AquaVoice</h1>
         </div>
@@ -85,7 +87,7 @@
                 </label>
                 <div class="flex justify-center space-x-3 text-3xl">
                     {% for i in range(1, 6) %}
-                        <i class="rating-star fas fa-star text-gray-300 hover:text-yellow-400 transition-colors" 
+                        <i class="rating-star fas fa-star text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer" 
                            data-rating="{{ i }}" onclick="setRating({{ i }})"></i>
                     {% endfor %}
                 </div>
@@ -118,13 +120,6 @@
                 <i class="fas fa-paper-plane mr-2"></i>SUBMIT FEEDBACK
             </button>
         </form>
-
-        <!-- Admin Link -->
-        <div class="text-center mt-6">
-            <a href="{{ url_for('admin') }}" class="text-sm text-gray-500 hover:text-blue-600 transition">
-                <i class="fas fa-lock mr-1"></i>Admin Portal
-            </a>
-        </div>
     </div>
 </div>
 
@@ -147,6 +142,7 @@
         });
     }
 
+    // Form validation
     document.getElementById('feedbackForm').addEventListener('submit', function(e) {
         if (!currentRating) {
             e.preventDefault();
