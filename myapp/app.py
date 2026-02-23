@@ -1,6 +1,5 @@
 import os
 import traceback
-from myapp.utils import init_db
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +12,13 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-12345')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://aquavoice_user:your_password@localhost:5432/aquavoice_db')
+
+# Fix for Railway PostgreSQL URL (starts with postgresql:// not postgres://)
+database_url = os.getenv('DATABASE_URL', '')
+if database_url and database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///temp.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -29,7 +34,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
             flash('You need admin privileges to access this page.', 'danger')
-            return redirect(url_for('index'))  # ← CHANGED TO index (NOT admin)
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -293,30 +298,39 @@ def delete_user(user_id):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
-        # Ensure stations exist
-        stations = [
-            "VIOLY'S WATER REFILLING STATION",
-            "BWM'S WATER REFILLING STATION", 
-            "FERNANDO'S WATER REFILLING STATION",
-            "YAKAP AT HALIK WATER REFILLING STATION",
-            "MARKEN MIST WATER REFILLING STATION"
-        ]
-        for station_name in stations:
-            if not WaterStation.query.filter_by(name=station_name).first():
-                db.session.add(WaterStation(name=station_name))
-        
-        # Create default admin if not exists
-        if not User.query.filter_by(username='admin').first():
-            admin = User(
-                username='admin',
-                email='admin@aquavoice.com',
-                is_admin=True
-            )
-            admin.set_password('admin123')  # Change this in production!
-            db.session.add(admin)
-            print("Default admin created - username: admin, password: admin123")
-        
-        db.session.commit()
+        try:
+            db.create_all()
+            # Ensure stations exist
+            stations = [
+                "VIOLY'S WATER REFILLING STATION",
+                "BWM'S WATER REFILLING STATION", 
+                "FERNANDO'S WATER REFILLING STATION",
+                "YAKAP AT HALIK WATER REFILLING STATION",
+                "MARKEN MIST WATER REFILLING STATION"
+            ]
+            for station_name in stations:
+                if not WaterStation.query.filter_by(name=station_name).first():
+                    db.session.add(WaterStation(name=station_name))
+            
+            # Create default admin if not exists
+            if not User.query.filter_by(username='admin').first():
+                admin = User(
+                    username='admin',
+                    email='admin@aquavoice.com',
+                    is_admin=True
+                )
+                admin.set_password('admin123')  # Change this in production!
+                db.session.add(admin)
+                print("Default admin created - username: admin, password: admin123")
+            
+            db.session.commit()
+            print("Database initialized successfully!")
+        except Exception as e:
+            print(f"Database initialization error: {str(e)}")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # FIXED: Use Railway's PORT environment variable and disable debug mode
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"Starting AquaVoice app on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
