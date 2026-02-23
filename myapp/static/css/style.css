@@ -1,0 +1,52 @@
+/* Additional custom styles */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .rating-star {
+        font-size: 2rem;
+    }
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Touch-friendly buttons */
+button, 
+select, 
+input[type="submit"] {
+    min-height: 44px; /* Apple's recommended minimum touch target size */
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}

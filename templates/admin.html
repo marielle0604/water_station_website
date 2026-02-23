@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Admin Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <i class="fas fa-water text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-blue-800 ml-3">AquaVoice Admin</h1>
+        </div>
+        <a href="{{ url_for('index') }}" 
+           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Form
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-comments text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500 text-sm">Total Feedbacks</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_feedbacks }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-star text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500 text-sm">Average Rating</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ avg_rating }}/5</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-store text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500 text-sm">Active Stations</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ station_stats|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Station Statistics -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Station Performance</h2>
+        <div class="space-y-3">
+            {% for station in station_stats %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-800">{{ station.name }}</p>
+                    <p class="text-sm text-gray-500">{{ station.count }} feedbacks</p>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-lg font-bold text-blue-600 mr-2">{{ station.avg_rating }}</span>
+                    <div class="flex">
+                        {% for i in range(5) %}
+                            <i class="fas fa-star text-xs {% if i < station.avg_rating %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Feedbacks</h2>
+        
+        {% if feedbacks %}
+            <div class="space-y-4">
+                {% for feedback in feedbacks %}
+                <div class="border rounded-lg p-4 hover:shadow-md transition" data-feedback-id="{{ feedback.id }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">{{ feedback.customer_name }}</h3>
+                            <p class="text-sm text-gray-500">{{ feedback.station.name }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                {% if feedback.status == 'new' %}bg-green-100 text-green-700
+                                {% elif feedback.status == 'read' %}bg-blue-100 text-blue-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ feedback.status }}
+                            </span>
+                            <span class="text-xs text-gray-400">{{ feedback.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-2">
+                        {% for i in range(5) %}
+                            <i class="fas fa-star text-xs {% if i < feedback.rating %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                    
+                    <p class="text-gray-600 mb-2">{{ feedback.feedback_text }}</p>
+                    
+                    {% if feedback.suggestions %}
+                        <p class="text-sm text-gray-500 italic border-l-2 border-blue-300 pl-3">
+                            Suggestion: {{ feedback.suggestions }}
+                        </p>
+                    {% endif %}
+                    
+                    <div class="flex items-center justify-end space-x-2 mt-3">
+                        <select onchange="updateStatus({{ feedback.id }}, this.value)" 
+                                class="text-sm border rounded px-2 py-1">
+                            <option value="new" {% if feedback.status == 'new' %}selected{% endif %}>New</option>
+                            <option value="read" {% if feedback.status == 'read' %}selected{% endif %}>Read</option>
+                            <option value="archived" {% if feedback.status == 'archived' %}selected{% endif %}>Archived</option>
+                        </select>
+                        <button onclick="deleteFeedback({{ feedback.id }})" 
+                                class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-gray-500 py-8">No feedbacks yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function updateStatus(feedbackId, status) {
+        fetch(`/admin/update-status/${feedbackId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const feedbackDiv = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
+                const badge = feedbackDiv.querySelector('span.rounded-full');
+                badge.className = `px-2 py-1 text-xs rounded-full ${
+                    status === 'new' ? 'bg-green-100 text-green-700' :
+                    status === 'read' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-700'
+                }`;
+                badge.textContent = status;
+            }
+        });
+    }
+
+    function deleteFeedback(feedbackId) {
+        if (confirm('Are you sure you want to delete this feedback?')) {
+            fetch(`/admin/delete/${feedbackId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const feedbackDiv = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
+                    feedbackDiv.remove();
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}
