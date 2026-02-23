@@ -296,41 +296,48 @@ def delete_user(user_id):
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Cannot delete your own account'}), 400
 
+# ===== FIX: Database initialization moved outside __main__ block =====
+# This will run when the module is imported by Gunicorn
+with app.app_context():
+    try:
+        # Create all tables
+        db.create_all()
+        print("✓ Database tables created/verified")
+        
+        # Ensure stations exist
+        stations = [
+            "VIOLY'S WATER REFILLING STATION",
+            "BWM'S WATER REFILLING STATION", 
+            "FERNANDO'S WATER REFILLING STATION",
+            "YAKAP AT HALIK WATER REFILLING STATION",
+            "MARKEN MIST WATER REFILLING STATION"
+        ]
+        for station_name in stations:
+            if not WaterStation.query.filter_by(name=station_name).first():
+                db.session.add(WaterStation(name=station_name))
+                print(f"✓ Added station: {station_name}")
+        
+        # Create default admin if not exists
+        if not User.query.filter_by(username='admin').first():
+            admin = User(
+                username='admin',
+                email='admin@aquavoice.com',
+                is_admin=True
+            )
+            admin.set_password('admin123')  # Change this in production!
+            db.session.add(admin)
+            print("✓ Default admin created - username: admin, password: admin123")
+        
+        db.session.commit()
+        print("✓ Database initialization complete")
+    except Exception as e:
+        print(f"✗ Database initialization error: {str(e)}")
+        traceback.print_exc()
+
+# This part only runs when you execute python app.py directly (not with Gunicorn)
 if __name__ == '__main__':
-    with app.app_context():
-        try:
-            db.create_all()
-            # Ensure stations exist
-            stations = [
-                "VIOLY'S WATER REFILLING STATION",
-                "BWM'S WATER REFILLING STATION", 
-                "FERNANDO'S WATER REFILLING STATION",
-                "YAKAP AT HALIK WATER REFILLING STATION",
-                "MARKEN MIST WATER REFILLING STATION"
-            ]
-            for station_name in stations:
-                if not WaterStation.query.filter_by(name=station_name).first():
-                    db.session.add(WaterStation(name=station_name))
-            
-            # Create default admin if not exists
-            if not User.query.filter_by(username='admin').first():
-                admin = User(
-                    username='admin',
-                    email='admin@aquavoice.com',
-                    is_admin=True
-                )
-                admin.set_password('admin123')  # Change this in production!
-                db.session.add(admin)
-                print("Default admin created - username: admin, password: admin123")
-            
-            db.session.commit()
-            print("Database initialized successfully!")
-        except Exception as e:
-            print(f"Database initialization error: {str(e)}")
-    
-    # FIXED: Use Railway's PORT environment variable and disable debug mode
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
-    print(f"Starting AquaVoice app on port {port}...")
+    print(f"Starting AquaVoice app on port {port} in debug mode: {debug_mode}...")
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
